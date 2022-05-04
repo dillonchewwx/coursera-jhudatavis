@@ -1,0 +1,113 @@
+---
+title: "Week 3 Peer Review"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+######DO NOT MODIFY. This will load required packages and data.
+
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+cces <- drop_na(read_csv(url("https://www.dropbox.com/s/ahmt12y39unicd2/cces_sample_coursera.csv?raw=1")))
+
+cel <- drop_na(read_csv(url("https://www.dropbox.com/s/4ebgnkdhhxo5rac/cel_volden_wiseman%20_coursera.csv?raw=1")))
+
+```
+
+Following the directions on the Coursera assignment page, you will make four original visualizations. Note that the data for the CCES and CEL data are imported in code in the R Markdown file.
+
+### Put your name here: Dillon Chew
+
+## Exercise 1
+
+Explain what you are visualizing here: Is there any relationship between seniority and legislative effectiveness in 2017? Correlation seems weak.
+
+Put your figure here:
+
+```{r exercise1,echo=FALSE}
+
+ggplot(cel %>% 
+           filter(year==2017) %>%
+           mutate(female=recode(female, `0`="Male", `1`="Female")), 
+       aes(x=les, y=seniority, color=female)) + 
+    geom_point() +  
+    geom_text(aes(label=st_name)) + 
+    theme_bw() + 
+    facet_wrap(~female, scales="free") +
+    guides(color="none") + 
+    labs(x="Volden and Wiseman's Legislative Effective Score (LES)", title="Seniority and LES Scores in 2017", y="Number of terms in congress") + 
+    geom_smooth(method="lm")
+```
+
+## Exercise 2
+
+Explain what you are visualizing here: Were there differences between males and female in terms of legislative effectiveness between 2011 to 2017? Does't seem to have much differences here.
+
+Put your figure here:
+
+```{r exercise2,echo=FALSE}
+
+ggplot(cel %>% 
+           filter(year>=2010) %>%
+           mutate(female=recode(female, `0`="Male", `1`="Female")), 
+       aes(x=female, y=les, color=female)) + 
+    geom_boxplot() + 
+    coord_flip() + 
+    theme_bw() + 
+    facet_wrap(~year, ncol=1) + 
+    guides(color="none") + 
+    labs(x="", y="Volden and Wiseman's Legislative Effective Score (LES)", title="Sex and LES Scores")
+  
+```
+
+## Exercise 3
+
+Explain what you are visualizing here: Race and Paying off Student Loans
+
+Put your figure here:
+
+```{r exercise3,echo=FALSE, fig.width=14, fig.height=7}
+
+ggplot(cces %>%
+           mutate(race=recode(race, 
+                              `1`="White", `2`="Black",
+                              `3`="Hispanic", `4`="Asian", 
+                              `5`="Native American", `6`="Mixed", 
+                              `7`="Others", `8`="Middle Eastern"),
+                  educ=recode(educ,
+                              `1`="No high school", `2`="High school graduate",
+                              `3`="Some college", `4`="2-year", 
+                              `5`="4-year", `6`="Post-grad"),
+                  edloan=recode(edloan,
+                                `1`="Yes", `2`="No")), 
+       aes(x=edloan, fill=educ)) + 
+    geom_bar(position="stack") + 
+    facet_wrap(~race, scales="free_y", nrow=1) + 
+    theme(axis.text.x=element_text(angle=45, vjust=1, hjust=1)) +
+    labs(x="Paying off Student Loan?", y="Count", 
+         fill="Highest Level of Education", title="Race and Paying off Student Loans")
+
+```
+
+## Exercise 4
+
+Explain what you are visualizing here: Number of Congressmen between 1973-2017
+
+Put your figure here:
+
+```{r exercise4,echo=FALSE}
+
+ggplot(cel %>% 
+           group_by(year) %>% 
+           summarise(Democrats=sum(dem), Republicans=n()-sum(dem)) %>%
+           pivot_longer(cols=Democrats:Republicans, 
+                        names_to="isdem", values_to="count"), 
+       aes(x=year, y=count, group=isdem, color=isdem)) + 
+    geom_line() + 
+    scale_color_manual(values=c("blue", "red")) + 
+    labs(x="Year", y="Count", color="Political Party", 
+         title="Number of Congressmen between 1973-2017") + 
+    theme_bw()
+```
